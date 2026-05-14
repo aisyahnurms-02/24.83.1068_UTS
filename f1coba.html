@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formula 1</title>
+    <link rel="icon" type="image/svg+xml" href="https://upload.wikimedia.org/wikipedia/commons/3/33/F1.svg">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --f1-red: #e10600;
+            --bg-main: #050505;
+            --bg-card: #15151e;
+            --border-color: #2a2a35;
+            --text-main: #ffffff;
+            --text-muted: #b0b0b5;
+            --bg-hover: #1a1a24;
+            --bg-table-header: #111111;
+            --hero-overlay: linear-gradient(rgba(35, 35, 45, 0.85), rgba(20, 20, 25, 0.95));
+            --invert-icon: invert(1);
+            --transition-speed: 0.3s;
+        }
+
+        [data-theme="light"] {
+            --bg-main: #f4f4f6;
+            --bg-card: #ffffff;
+            --border-color: #d1d1d6;
+            --text-main: #15151e;
+            --text-muted: #555555;
+            --bg-hover: #e9ecef;
+            --bg-table-header: #e0e0e0;
+            --hero-overlay: linear-gradient(rgba(255, 255, 255, 0.85), rgba(240, 240, 240, 0.95));
+            --invert-icon: invert(0);
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            overflow-x: hidden;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            transition: background-color var(--transition-speed), color var(--transition-speed);
+        }
+
+        .page-section {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        .page-section.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .navbar {
+            padding: 15px 5%;
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+        }
+        .navbar-brand img { height: 30px; }
+        .nav-link {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--text-main) !important;
+            margin: 0 10px;
+            text-transform: uppercase;
+            transition: color var(--transition-speed);
+            cursor: pointer;
+        }
+        .nav-link:hover, .dropdown-item:hover { color: var(--f1-red) !important; background: transparent; }
+        .nav-link.active-dot { color: var(--f1-red) !important; }
+        .nav-link.active-dot::before {
+            content: "•"; color: var(--f1-red); font-size: 1.2rem; margin-right: 5px; vertical-align: middle;
+        }
+        
+        .dropdown-menu {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color) !important;
+        }
+        .dropdown-item { color: var(--text-main) !important; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+        .dropdown-item:hover { background-color: var(--border-color); }
+        .navbar-toggler-icon { filter: var(--invert-icon); transition: filter var(--transition-speed); }
+
+        .btn-signin, .btn-subscribe {
+            border-radius: 4px; font-size: 0.8rem; font-weight: 700; padding: 8px 20px; transition: all var(--transition-speed); cursor: pointer;
+        }
+        .btn-signin { background-color: var(--f1-red); color: white; border: none; }
+        .btn-signin:hover { background-color: #b30500; transform: translateY(-2px); }
+        .btn-subscribe { background-color: transparent; color: var(--text-main); border: 1px solid var(--border-color); margin-left: 10px; }
+        .btn-subscribe:hover { background-color: var(--border-color); transform: translateY(-2px); }
+
+        .btn-display-mode {
+            background: transparent;
+            border: 1px solid var(--text-main);
+            color: var(--text-main);
+            border-radius: 50px;
+            padding: 6px 16px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all var(--transition-speed);
+            margin-right: 15px;
+        }
+        .btn-display-mode:hover { background-color: var(--border-color); }
+        .btn-display-mode::after { display: none; }
+
+        /* --- Hero Section --- */
+        .hero-section {
+            position: relative; 
+            min-height: 80vh; 
+            padding-top: 80px; 
+            display: flex; 
+            align-items: center; 
+            overflow: hidden; 
+            background-color: var(--bg-main);
+            transition: background-color var(--transition-speed);
+        }
+        
+        .hero-bg-diagonal {
+            position: absolute; 
+            top: 0; right: 0; width: 65%; height: 100%;
+            background: var(--hero-overlay), url('https://images.unsplash.com/photo-1532983330758-6df79cb86991?auto=format&fit=crop&q=80&w=1000') no-repeat center center;
+            background-size: cover; 
+            clip-path: polygon(25% 0, 100% 0, 100% 100%, 0% 100%); 
+            z-index: 1;
+            transition: background var(--transition-speed);
+        }
+
+        .hero-content { position: relative; z-index: 2; padding-left: 5%; padding-bottom: 50px; }
+        .hero-title { font-size: clamp(2.5rem, 5vw, 4rem); font-weight: 800; font-style: italic; line-height: 1.1; margin-bottom: 20px; color: var(--text-main); }
+        .hero-subtitle { font-size: 1.5rem; font-weight: 700; letter-spacing: 2px; margin-bottom: 20px; color: var(--text-main); }
+        .hero-desc { font-size: 0.9rem; color: var(--text-muted); max-width: 450px; line-height: 1.6; margin-bottom: 30px; font-weight: 500;}
+        .btn-discover {
+            background: linear-gradient(90deg, #ff2800 0%, var(--f1-red) 100%); color: white; font-weight: 700; padding: 12px 30px; border-radius: 5px; border: none; box-shadow: 0 4px 15px rgba(225, 6, 0, 0.3); transition: all var(--transition-speed);
+        }
+        .btn-discover:hover { transform: scale(1.05); box-shadow: 0 6px 20px rgba(225, 6, 0, 0.5); }
+
+        .hero-car-area { position: absolute; right: -5%; top: 20%; width: 60%; z-index: 3; }
+        
+        .main-car-img { 
+            width: 100%; 
+            filter: drop-shadow(0 20px 20px rgba(0,0,0,0.7)); 
+            transition: transform 0.5s ease, opacity 0.5s ease;
+            opacity: 1;
+        }
+        .main-car-img.fade-out {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        .main-car-img:hover { transform: translateX(-20px) scale(1.02); }
+
+        .countdown-widget {
+            position: absolute; top: -30px; left: 10%; background: var(--bg-main); padding: 15px 25px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 3; text-align: center; border: 1px solid var(--border-color);
+            transition: background-color var(--transition-speed), border-color var(--transition-speed);
+        }
+        .countdown-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 10px; color: var(--text-main); }
+        .countdown-numbers { display: flex; gap: 15px; color: var(--f1-red); font-size: 1.8rem; font-weight: 700; }
+        .countdown-item { display: flex; flex-direction: column; line-height: 1; }
+        .countdown-label { font-size: 0.6rem; color: var(--text-muted); font-weight: 600; margin-top: 5px; }
+
+        .section-padding { padding: 60px 5%; background-color: var(--bg-main); transition: background-color var(--transition-speed); }
+        .section-header { display: flex; align-items: center; margin-bottom: 40px; }
+        .section-header h3 { font-weight: 800; font-size: 1.5rem; margin: 0; text-transform: uppercase; color: var(--text-main); }
+        .header-line { height: 2px; background-color: var(--f1-red); flex-grow: 1; margin-left: 20px; opacity: 0.5; }
+        
+        .news-list-card {
+            background-color: var(--bg-card); border-radius: 8px; overflow: hidden; display: flex; transition: all var(--transition-speed); cursor: pointer; border: 1px solid var(--border-color); height: 120px; align-items: stretch;
+        }
+        .news-list-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); border-color: var(--f1-red); }
+        .news-list-img-wrapper { width: 35%; min-width: 130px; position: relative; }
+        .news-list-img { width: 100%; height: 100%; object-fit: cover; }
+        .news-list-body { padding: 15px 20px; width: 65%; display: flex; flex-direction: column; justify-content: center; }
+        .news-list-tag { background-color: #d90f54; color: white; font-size: 0.6rem; font-weight: 800; padding: 2px 6px; border-radius: 3px; display: inline-block; margin-bottom: 8px; align-self: flex-start; text-transform: uppercase; }
+        .news-list-title { color: var(--text-main); font-size: 0.9rem; font-weight: 700; line-height: 1.4; margin: 0 0 10px 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .news-list-date { color: var(--text-muted); font-size: 0.75rem; font-weight: 600; margin-top: auto; }
+
+        .form-container { max-width: 450px; margin: 0 auto; background: var(--bg-card); padding: 40px; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid var(--border-color); transition: background-color var(--transition-speed); }
+        .form-control { background-color: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px 15px; font-size: 0.9rem; font-weight: 500; border-radius: 5px; transition: all var(--transition-speed); }
+        .form-control:focus { background-color: var(--bg-hover); border-color: var(--f1-red); color: var(--text-main); box-shadow: 0 0 0 0.25rem rgba(225, 6, 0, 0.15); }
+        .form-control::placeholder { color: #6c757d; }
+        .form-label { font-weight: 700; font-size: 0.85rem; color: var(--text-main); }
+        .btn-form { background-color: var(--f1-red); color: white; font-weight: 700; width: 100%; padding: 12px; border: none; border-radius: 5px; transition: background 0.3s; }
+        .btn-form:hover { background-color: #b30500; }
+        .auth-link { color: var(--f1-red); font-weight: 700; text-decoration: none; cursor: pointer; }
+        .auth-link:hover { text-decoration: underline; }
+
+        .ticket-table { width: 100%; background: var(--bg-card); border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid var(--border-color); transition: background-color var(--transition-speed); }
+        .ticket-table th { background: var(--bg-table-header); color: var(--text-main); padding: 15px; font-weight: 600; font-size: 0.9rem; border-bottom: 2px solid var(--f1-red); transition: background-color var(--transition-speed), color var(--transition-speed); }
+        .ticket-table td { padding: 15px; border-bottom: 1px solid var(--border-color); vertical-align: middle; font-size: 0.9rem; font-weight: 500; color: var(--text-main); }
+        .ticket-table tr:hover td { background-color: var(--bg-hover); }
+        .btn-buy { background: var(--f1-red); color: white; padding: 8px 15px; border-radius: 4px; border: none; font-weight: 700; font-size: 0.8rem; }
+        .btn-buy:hover { background: #b30500;}
+
+        @media (max-width: 991px) {
+            .hero-bg-diagonal { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); width: 100%; opacity: 0.5; }
+            .hero-car-area { position: relative; width: 100%; right: 0; top: 0; padding: 20px; display: flex; justify-content: center; }
+            .countdown-widget { position: relative; top: 0; left: 0; margin-bottom: 20px; }
+            .hero-section { display: block; padding-top: 40px; }
+            .nav-link { margin-bottom: 10px; }
+            .d-flex.d-none { display: flex !important; flex-direction: column; gap: 10px; margin-top: 15px;}
+            .btn-subscribe { margin-left: 0; }
+            .news-list-card { height: auto; flex-direction: column; }
+            .news-list-img-wrapper { width: 100%; height: 180px; }
+            .news-list-body { width: 100%; }
+        }
+
+        /* ==========================================
+           TAMBAHAN KHUSUS F1 STORE PAGE
+           ========================================== */
+        #page-store { background-color: #ffffff; color: #000000; padding: 0; }
+        .store-header-title { color: #e10600; font-weight: 900; font-style: italic; font-size: 1.8rem; margin: 0; line-height: 1; }
+        .store-nav span { cursor: pointer; padding: 15px 0; border-bottom: 2px solid transparent; transition: 0.2s; white-space: nowrap; }
+        .store-nav span:hover { border-bottom-color: #e10600; color: #e10600; }
+        .team-circle { width: 55px; height: 55px; border-radius: 50%; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; margin: 0 auto 8px; font-weight: 800; background: #f8f9fa; color: #333; transition: all 0.2s; font-size: 0.85rem;}
+        .team-item { min-width: 75px; text-align: center; cursor: pointer; }
+        .team-item:hover .team-circle { border-color: #e10600; box-shadow: 0 0 8px rgba(225,6,0,0.2); }
+        .sidebar-heading { font-size: 0.9rem; font-weight: 800; cursor: pointer; color: #111;}
+        .store-search-input { border-radius: 50px !important; background-color: #f4f4f4 !important; border: 1px solid #ddd !important; padding-left: 45px !important; font-weight: 500; color: #333 !important;}
+        .store-search-input:focus { box-shadow: none !important; background-color: #fff !important; border-color: #ccc !important;}
+        .search-icon-wrapper { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); z-index: 10; color: #666;}
+        .store-form-check-label { font-size: 0.85rem; font-weight: 500; color: #333;}
+        
+        #page-store input[type="radio"] { cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#" onclick="switchPage('home')">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/33/F1.svg" alt="F1 Logo">
+            </a>
+            
+            <div class="d-flex align-items-center gap-2 order-lg-last">
+                <div class="d-flex d-none d-lg-flex">
+                    <button class="btn-signin" onclick="switchPage('signin')">SIGN IN</button>
+                    <button class="btn-subscribe" onclick="switchPage('signup')">SIGN UP</button>
+                </div>
+                
+                <div class="dropdown">
+                    <button class="btn-display-mode dropdown-toggle" type="button" id="themeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        Display mode
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16">
+                          <path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/>
+                        </svg>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="themeDropdown">
+                        <li><a class="dropdown-item" onclick="setThemePref('light')">Light</a></li>
+                        <li><a class="dropdown-item" onclick="setThemePref('dark')">Dark</a></li>
+                        <li><hr class="dropdown-divider" style="border-color: var(--border-color);"></li>
+                        <li><a class="dropdown-item" onclick="setThemePref('system')">System</a></li>
+                    </ul>
+                </div>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+            </div>
+
+            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item"><a class="nav-link active-dot" onclick="switchPage('home', this)">HOME</a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchPage('authentics', this)">AUTHENTICS</a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchPage('store', this)">STORE</a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchPage('tickets', this)">TICKETS</a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchPage('about', this)">ABOUT US</a></li>
+                    <li class="nav-item"><a class="nav-link" onclick="switchPage('contact', this)">CONTACT US</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main id="main-content">
+        <div id="page-home" class="page-section active">
+            <section class="hero-section">
+                <div class="hero-bg-diagonal"></div>
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-lg-6 hero-content">
+                            <h1 class="hero-title">WELCOME TO<br>WORLD OF</h1>
+                            <div class="hero-subtitle">
+                                <span style="color: var(--f1-red);">•</span> FORMULA 1
+                            </div>
+                            <p class="hero-desc">
+                                Formula 1 (F1) Is The Most Prestigious And Popular Car Racing Event In The World. With A Rich History And State-Of-The-Art Technology, F1 Is The Event That Automotive Enthusiasts Around The World Have Been Waiting For.
+                            </p>
+                            <button class="btn-discover" onclick="switchPage('tickets')">DISCOVER RACE</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hero-car-area">
+                    <div class="countdown-widget">
+                        <div class="countdown-title">LAS VEGAS GRAND PRIX</div>
+                        <div class="countdown-numbers">
+                            <div class="countdown-item"><span id="days">04</span><span class="countdown-label">DAYS</span></div>
+                            <div class="countdown-item"><span id="hours">10</span><span class="countdown-label">HRS</span></div>
+                            <div class="countdown-item"><span id="minutes">31</span><span class="countdown-label">MINS</span></div>
+                            <div class="countdown-item"><span id="seconds">59</span><span class="countdown-label">SECS</span></div>
+                        </div>
+                    </div>
+                    <!-- SRC gambar diatur ke nama file lokal Anda. -->
+                    <img id="hero-car-img" src="f1 car.png" alt="F1 Car" class="main-car-img">
+                </div>
+            </section>
+
+            <section class="section-padding">
+                <div class="section-header">
+                    <h3>LATEST NEWS</h3>
+                    <div class="header-line"></div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="news-list-card">
+                            <div class="news-list-img-wrapper">
+                                <img src="https://media.formula1.com/image/upload/t_16by9Centre/c_lfill,w_3392/q_auto/v1740000001/trackside-images/2026/F1_Grand_Prix_of_Miami___Sprint__Qualifying/2274210253.webp" class="news-list-img" alt="Race Cars">
+                            </div>
+                            <div class="news-list-body">
+                                <h4 class="news-list-title">Watch Round 8 of the F1 Sim Racing World Championship</h4>
+                                <div class="news-list-date">January 01, 2026</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="news-list-card">
+                            <div class="news-list-img-wrapper">
+                                <img src="https://media.formula1.com/image/upload/t_16by9North/c_lfill,w_3392/q_auto/v1740000001/trackside-images/2026/F1_Grand_Prix_of_Miami/2274331103.webp" class="news-list-img" alt="Trophy">
+                            </div>
+                            <div class="news-list-body">
+                                <h4 class="news-list-title">How Antonelli has made best points start in 10 years</h4>
+                                <div class="news-list-date">May 12, 2026</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="news-list-card">
+                            <div class="news-list-img-wrapper">
+                                <img src="https://media.formula1.com/image/upload/t_16by9North/c_lfill,w_3392/q_auto/v1740000001/trackside-images/2026/F1_Grand_Prix_of_Miami/2274287289.webp" class="news-list-img" alt="Andrea Stella">
+                            </div>
+                            <div class="news-list-body">
+                                <span class="news-list-tag">BETTING</span>
+                                <h4 class="news-list-title">Leclerc penalised by Miami Grand Prix stewards</h4>
+                                <div class="news-list-date">May 04, 2026</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="news-list-card">
+                            <div class="news-list-img-wrapper">
+                                <img src="https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/fom-website/2026/Technical/TECH%20WEEKLY%20V1%20%20(8).webp" class="news-list-img" alt="Andrea Stella">
+                            </div>
+                            <div class="news-list-body">
+                                <span class="news-list-tag">UNLOCKED</span>
+                                <h4 class="news-list-title">Inside Ferrari and Red Bull's 'Macarena' Wings</h4>
+                                <div class="news-list-date">November 26, 2025</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <div id="page-about" class="page-section section-padding">
+            <div class="container">
+                <div class="section-header">
+                    <h3>ABOUT FORMULA 1</h3>
+                    <div class="header-line"></div>
+                </div>
+                <div class="row align-items-center g-5">
+                    <div class="col-md-6">
+                        <img src="https://media.formula1.com/image/upload/c_lfill,w_3392/q_auto/v1740000001/content/dam/fom-website/2018-redesign-assets/Racehub%20header%20images%2016x9/Las%20Vegas.webp" alt="F1 Race" class="img-fluid rounded shadow" style="width: 100%;">
+                    </div>
+                    <div class="col-md-6">
+                        <h2 style="font-weight: 800; font-style: italic;">THE PINNACLE OF <span style="color: var(--f1-red)">MOTORSPORT</span></h2>
+                        <p class="mt-4" style="line-height: 1.8; color: var(--text-muted); font-weight: 500;">
+                            Sejak dimulainya Kejuaraan Dunia pada tahun 1950, Formula 1 telah menjadi olahraga otomotif paling bergengsi di dunia. Ini bukan hanya tentang kecepatan; ini adalah puncak dari inovasi teknik, kerja sama tim, dan keunggulan manusia.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-contact" class="page-section section-padding">
+            <div class="container">
+                <div class="section-header">
+                    <h3>CONTACT US</h3>
+                    <div class="header-line"></div>
+                </div>
+                <div class="row g-5">
+                    <div class="col-md-7">
+                        <div class="form-container" style="max-width: 100%; margin: 0;">
+                            <h4 class="mb-4" style="font-weight: 800; color: var(--text-main);">Send Us a Message</h4>
+                            <form>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">First Name</label>
+                                        <input type="text" class="form-control" placeholder="John">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Last Name</label>
+                                        <input type="text" class="form-control" placeholder="Doe">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email Address</label>
+                                    <input type="email" class="form-control" placeholder="johndoe@email.com">
+                                </div>
+                                <div class="mb-4">
+                                    <label class="form-label">Message</label>
+                                    <textarea class="form-control" rows="4" placeholder="How can we help you?"></textarea>
+                                </div>
+                                <button type="button" class="btn-form">SUBMIT MESSAGE</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <div class="p-4" style="background: var(--bg-card); border-radius: 10px; border: 1px solid var(--border-color);">
+                            <h4 style="font-weight: 800; margin-bottom: 20px; color: var(--text-main);">F1 Headquarters</h4>
+                            <p style="font-weight: 500; color: var(--text-muted);"><strong>Address:</strong><br>Formula One Management Limited<br>No. 2 St James's Market<br>London, SW1Y 4AH<br>United Kingdom</p>
+                            <hr style="border-color: var(--border-color);">
+                            <p style="font-weight: 500; color: var(--text-muted);"><strong>Email:</strong> info@f1.com</p>
+                            <p style="font-weight: 500; color: var(--text-muted);"><strong>Media Enquiries:</strong> media@f1.com</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-signin" class="page-section section-padding">
+            <div class="form-container">
+                <div class="text-center mb-4">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/33/F1.svg" alt="F1 Logo" style="height: 30px; margin-bottom: 20px;">
+                    <h3 style="font-weight: 800; color: var(--text-main);">WELCOME BACK</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Sign in to access your F1 account.</p>
+                </div>
+                <form>
+                    <div class="mb-3">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-control" placeholder="Enter your email">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label d-flex justify-content-between">
+                            Password 
+                            <a href="#" class="auth-link" style="font-size: 0.8rem; font-weight: 600;">Forgot?</a>
+                        </label>
+                        <input type="password" class="form-control" placeholder="Enter your password">
+                    </div>
+                    <button type="button" class="btn-form mb-3">SIGN IN</button>
+                    <div class="text-center" style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">
+                        Don't have an account? <a onclick="switchPage('signup')" class="auth-link">Sign Up</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="page-signup" class="page-section section-padding">
+            <div class="form-container">
+                <div class="text-center mb-4">
+                    <h3 style="font-weight: 800; color: var(--text-main);">CREATE ACCOUNT</h3>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">Join the F1 community today.</p>
+                </div>
+                <form>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">First Name</label>
+                            <input type="text" class="form-control" placeholder="First Name">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" class="form-control" placeholder="Last Name">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-control" placeholder="Enter your email">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">Password</label>
+                        <input type="password" class="form-control" placeholder="Create a password">
+                    </div>
+                    <button type="button" class="btn-form mb-3">CREATE ACCOUNT</button>
+                    <div class="text-center" style="font-size: 0.9rem; font-weight: 500; color: var(--text-muted);">
+                        Already have an account? <a onclick="switchPage('signin')" class="auth-link">Sign In</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             HALAMAN F1 STORE 
+             ========================================== -->
+        <div id="page-store" class="page-section">
+            
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center py-3 px-4 px-md-5 border-bottom bg-white" style="color: black;">
+                <div class="d-flex align-items-center mb-3 mb-md-0">
+                    <h2 class="store-header-title">F1 <span class="text-dark">Store</span></h2>
+                    <div class="ms-2" style="line-height: 1;"><small style="font-size: 0.65rem; font-weight: 700; color: #555;">A Fanatics Experience</small></div>
+                </div>
+                <div class="flex-grow-1 mx-md-5 position-relative" style="max-width: 600px; width: 100%;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search search-icon-wrapper" viewBox="0 0 16 16">
+                        <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001q.044.06.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1 1 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0"/>
+                    </svg>
+                    <input type="text" class="form-control store-search-input py-2" placeholder="What can we help you find?">
+                </div>
+                <div class="d-none d-md-block text-center mt-3 mt-md-0">
+                    <div style="background-color: #006fcf; color: white; font-weight: 900; display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 0.9rem; letter-spacing: 1px;">AMEX</div>
+                    <div style="font-size: 0.5rem; color: #555; font-weight: bold; margin-top: 4px; line-height: 1.2;">Official Premium Partner<br>of Formula 1®</div>
+                </div>
+            </div>
+
+            <div class="store-nav d-flex flex-wrap gap-3 justify-content-md-between px-4 px-md-5 border-bottom fw-bold bg-white" style="font-size: 0.85rem; color: #111;">
+                <span>Shop By Team</span><span>Shop By Driver</span><span>Men</span><span>Women</span><span>Kids</span><span>Headwear</span><span>Gifts & Accessories</span><span>Collectibles</span><span>Clearance</span>
+            </div>
+
+            <div class="d-flex align-items-center px-4 px-md-5 py-4 border-bottom overflow-auto bg-white" style="color: black;">
+                <div class="me-5 text-nowrap">
+                    <h5 class="m-0 fw-light mb-1" style="font-size: 1.4rem;">Shop Your Team</h5>
+                    <a href="#" class="text-dark text-decoration-underline" style="font-size: 0.8rem; font-weight: 500;">Add Favorites</a>
+                </div>
+                <div class="d-flex gap-4">
+                    <div class="team-item"><div class="team-circle">AU</div><small style="font-size: 0.75rem; font-weight: 600;">Audi</small></div>
+                    <div class="team-item"><div class="team-circle">MER</div><small style="font-size: 0.75rem; font-weight: 600;">Mercedes</small></div>
+                    <div class="team-item"><div class="team-circle">RBR</div><small style="font-size: 0.75rem; font-weight: 600;">Red Bull Racing</small></div>
+                    <div class="team-item"><div class="team-circle">FER</div><small style="font-size: 0.75rem; font-weight: 600;">Ferrari</small></div>
+                    <div class="team-item"><div class="team-circle">MCL</div><small style="font-size: 0.75rem; font-weight: 600;">McLaren</small></div>
+                    <div class="team-item"><div class="team-circle">AM</div><small style="font-size: 0.75rem; font-weight: 600;">Aston Martin</small></div>
+                    <div class="team-item"><div class="team-circle">ALP</div><small style="font-size: 0.75rem; font-weight: 600;">Alpine</small></div>
+                    <div class="team-item"><div class="team-circle">VC</div><small style="font-size: 0.75rem; font-weight: 600;">VCARB</small></div>
+                    <div class="team-item"><div class="team-circle">WIL</div><small style="font-size: 0.75rem; font-weight: 600;">Williams</small></div>
+                    <div class="team-item"><div class="team-circle">HAA</div><small style="font-size: 0.75rem; font-weight: 600;">Haas</small></div>
+                    <div class="team-item"><div class="team-circle">CAD</div><small style="font-size: 0.75rem; font-weight: 600;">Cadillac F1 Team</small></div>
+                    <div class="team-item"><div class="team-circle">F1</div><small style="font-size: 0.75rem; font-weight: 600;">Formula 1 Merchandise</small></div>
+                </div>
+            </div>
+
+            <!-- Main Shop Layout -->
+            <div class="row g-0 bg-white" style="color: black;">
+                <div class="col-md-3 border-end px-4 px-md-5 py-4 d-none d-md-block">
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between sidebar-heading mb-1">
+                            Sort By 
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-down" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z"/></svg>
+                        </div>
+                        <div class="text-muted" style="font-size: 0.85rem;">Top Sellers</div>
+                    </div>
+                    <hr style="opacity: 0.15; border-top: 2px solid #ccc;">
+                    
+                    <!-- Drivers -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between sidebar-heading mb-3">
+                            Drivers 
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-up" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z"/></svg>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input border-secondary" type="radio" name="driver" id="george">
+                            <label class="form-check-label store-form-check-label" for="george">George Russell</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input border-secondary" type="radio" name="driver" id="kimi">
+                            <label class="form-check-label store-form-check-label" for="kimi">Kimi Antonelli</label>
+                        </div>
+                    </div>
+                    <hr style="opacity: 0.15; border-top: 2px solid #ccc;">
+                    
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between sidebar-heading mb-3">
+                            All Departments 
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-up" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z"/></svg>
+                        </div>
+                        <div class="form-check mb-3"><input class="form-check-input border-secondary" type="radio" name="dept" id="acc"><label class="form-check-label store-form-check-label" for="acc">Accessories</label></div>
+                        <div class="form-check mb-3"><input class="form-check-input border-secondary" type="radio" name="dept" id="auto"><label class="form-check-label store-form-check-label" for="auto">Auto Accessories</label></div>
+                        <div class="form-check mb-3"><input class="form-check-input border-secondary" type="radio" name="dept" id="baby"><label class="form-check-label store-form-check-label" for="baby">Babywear</label></div>
+                        <div class="form-check mb-3"><input class="form-check-input border-secondary" type="radio" name="dept" id="bags"><label class="form-check-label store-form-check-label" for="bags">Backpacks & Bags</label></div>
+                        <div class="form-check mb-3"><input class="form-check-input border-secondary" type="radio" name="dept" id="coll"><label class="form-check-label store-form-check-label" for="coll">Collectibles & Memorabilia</label></div>
+                        <div class="form-check mb-3"><input class="form-check-input border-secondary" type="radio" name="dept" id="foot"><label class="form-check-label store-form-check-label" for="foot">Footwear</label></div>
+                        <div class="form-check"><input class="form-check-input border-secondary" type="radio" name="dept" id="head"><label class="form-check-label store-form-check-label" for="head">Headwear</label></div>
+                    </div>
+                </div>
+
+                <div class="col-md-9 p-4 px-md-5">
+                    <div class="position-relative mb-4 w-100 overflow-hidden" style="height: 400px; background-color: #000;">
+                        <img src="https://f1store.formula1.com/content/ws/all/a92dabe2-cca7-412a-9ef4-b0878b06cff4__1600X900.png" alt="Mercedes Teamwear" class="w-100 h-100 object-fit-cover" style="filter: brightness(0.7);">
+                        <h1 class="position-absolute bottom-0 start-0 text-white fw-bold p-4 m-0" style="font-size: 3.5rem; text-shadow: 2px 2px 10px rgba(0,0,0,0.8); line-height: 1;">Mercedes<br>Teamwear</h1>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center py-2 mb-4">
+                        <select class="form-select w-auto fw-bold" style="border: 1px solid #ccc; font-size: 0.9rem; color: #111;">
+                            <option>72 Items</option>
+                        </select>
+                        <div style="font-size: 0.85rem; font-weight: 600; color: #555;">1 - 72 of 107</div>
+                    </div>
+
+                    <div class="row g-4 pb-5">
+                        <div class="col-6 col-md-3">
+                            <div style="height: 250px; background: #f4f4f4; border-radius: 4px;"></div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div style="height: 250px; background: #f4f4f4; border-radius: 4px;"></div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div style="height: 250px; background: #f4f4f4; border-radius: 4px;"></div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div style="height: 250px; background: #f4f4f4; border-radius: 4px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-tickets" class="page-section section-padding">
+            <div class="section-header"><h3>UPCOMING RACES - TICKETS</h3><div class="header-line"></div></div>
+            <div class="table-responsive">
+                <table class="ticket-table text-center">
+                    <thead>
+                        <tr><th>DATE</th><th>GRAND PRIX</th><th>LOCATION</th><th>ACTION</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>03 - 05 July</td><td><strong>British Grand Prix</strong></td><td>Silverstone Circuit</td><td><button class="btn-buy">Get Tickets</button></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="page-authentics" class="page-section section-padding">
+            <div class="section-header"><h3>AUTHENTICS</h3><div class="header-line"></div></div>
+            <p>Halaman Authentics.</p>
+        </div>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // ==========================================
+        // 1. LOGIKA TEMA (DARK / LIGHT / SYSTEM)
+        // ==========================================
+        function setThemePref(mode) {
+            localStorage.setItem('f1_theme_pref', mode);
+            applyTheme(mode);
+        }
+
+        function applyTheme(mode) {
+            let activeTheme = mode;
+
+            if (mode === 'system') {
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                activeTheme = prefersDark ? 'dark' : 'light';
+            }
+
+            document.documentElement.setAttribute('data-theme', activeTheme);
+        }
+
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+            const currentPref = localStorage.getItem('f1_theme_pref');
+            if (currentPref === 'system') {
+                applyTheme('system');
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('f1_theme_pref') || 'system';
+            applyTheme(savedTheme);
+        });
+
+        // ==========================================
+        // 2. LOGIKA CAROUSEL GAMBAR MOBIL (OTOMATIS)
+        // ==========================================
+        const carImages = [
+            "f1 car.png", 
+            "fera.png", 
+            "red.png"  
+        ];
+        
+        let currentCarIndex = 0;
+        const carImgElement = document.getElementById('hero-car-img');
+
+        function changeCarImage() {
+            carImgElement.classList.add('fade-out');
+            
+            setTimeout(() => {
+                currentCarIndex = (currentCarIndex + 1) % carImages.length;
+                carImgElement.src = carImages[currentCarIndex];
+                carImgElement.classList.remove('fade-out');
+            }, 500); 
+        }
+
+        setInterval(changeCarImage, 4500);
+
+        // ==========================================
+        // 3. LOGIKA HALAMAN 
+        // ==========================================
+        function switchPage(pageId, element = null) {
+            const sections = document.querySelectorAll('.page-section');
+            sections.forEach(sec => sec.classList.remove('active'));
+            
+            document.getElementById('page-' + pageId).classList.add('active');
+
+            const links = document.querySelectorAll('.nav-link');
+            links.forEach(link => link.classList.remove('active-dot'));
+
+            if(element) {
+                element.classList.add('active-dot');
+            } else if (pageId === 'home') {
+                links[0].classList.add('active-dot');
+            }
+            
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ==========================================
+        // 4. LOGIKA COUNTDOWN
+        // ==========================================
+        const targetDate = new Date();
+        targetDate.setDate(targetDate.getDate() + 4);
+        targetDate.setHours(targetDate.getHours() + 10);
+        
+        function updateCountdown() {
+            const now = new Date().getTime();
+            const distance = targetDate.getTime() - now;
+            if (distance < 0) return;
+
+            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            const daysEl = document.getElementById("days");
+            if(daysEl) {
+                daysEl.innerText = days < 10 ? "0" + days : days;
+                document.getElementById("hours").innerText = hours < 10 ? "0" + hours : hours;
+                document.getElementById("minutes").innerText = minutes < 10 ? "0" + minutes : minutes;
+                document.getElementById("seconds").innerText = seconds < 10 ? "0" + seconds : seconds;
+            }
+        }
+        setInterval(updateCountdown, 1000);
+        updateCountdown();
+    </script>
+</body>
+</html>
